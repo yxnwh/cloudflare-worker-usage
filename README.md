@@ -1,4 +1,4 @@
-# [Cloudflare Worker KV存储项目](https://github.com/yxnwh/cloudflare-worker-usage/blob/main/cloudflare-worker-storage.js)
+# [Cloudflare Worker KV存储项目-单击跳转至js文件](https://github.com/yxnwh/cloudflare-worker-usage/blob/main/cloudflare-worker-storage.js)
 
 ## 项目简介
 
