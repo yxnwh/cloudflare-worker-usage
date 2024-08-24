@@ -157,4 +157,5 @@ const token = encrypt({token:'token',time:Date.now()}) //token为数字、字母
 downloadAndParseExcel(fileName,token)
 ```
 该excel在KV空间中的存储方式如图
-![Uploading PixPin_2024-08-24_20-28-18.png…]()
+![PixPin_2024-08-24_20-28-18](https://github.com/user-attachments/assets/72e3132b-4594-4d76-8eff-211cea53f087)
+
