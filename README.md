@@ -69,3 +69,33 @@ const base64content = fileContent.toString('base64');
 data = await put_data('pic_123',tmp,base64content)
 console.log(data)
 ```
+
+读取KV空间中的数据（**单文件小于0.75MB**）:
+```
+const crypto = require('crypto');
+
+async function downloadfile(fileName, token) {
+    const url = `https://xxx.xxx/${fileName}?token=${token}`; //将xxx.xxx修改为你自己的worker空间域名
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const blob = await response.text(); //如果读取的时json数据，应改为response.json()
+      console.log(blob)
+  } catch (error) {
+      console.error('Download failed:', error);
+  }
+}
+function encrypt(text) {
+  const key = Buffer.from('key', 'utf8'); //key替换为你自己的AES密钥，数字、字母、字符随意设置，需与settings--Variables相对应
+  const cipher = crypto.createCipheriv('aes-128-ecb', key, null);
+  cipher.setAutoPadding(true); // 使用PKCS7填充
+  let encrypted = cipher.update(JSON.stringify(text), 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return encrypted;
+}
+const fileName = 'xxx';  // 修改为对应KV存储空间中你需要读取的key值
+const token = encrypt({token:'token',time:Date.now()}) //token为数字、字母、字符随意设置，需与settings--Variables相对应
+downloadfile(fileName,token)
+```
