@@ -37,17 +37,6 @@
 const crypto = require('crypto');
 const fs = require('fs');
 
-(async () => {
-    tmp = encrypt({token:'token',time:Date.now()}) //token为数字、字母、字符随意设置，需与settings--Variables相对应
-    console.log(tmp)
-    const filePath = './123.xlsx'; //此处以上传excel示例
-    const fileContent = fs.readFileSync(filePath);
-    const base64content = fileContent.toString('base64');
-    // console.log(base64content)
-    data = await put_data('pic_123',tmp,base64content)
-    console.log(data)
-})()
-
 function encrypt(text) {
     const key = Buffer.from('key', 'utf8');//key替换为你自己的AES密钥，数字、字母、字符随意设置，需与settings--Variables相对应
     const cipher = crypto.createCipheriv('aes-128-ecb', key, null);
@@ -71,4 +60,12 @@ async function put_data(name,token,encodedContent) {
     }
 }
 
+tmp = encrypt({token:'token',time:Date.now()}) //token为数字、字母、字符随意设置，需与settings--Variables相对应
+console.log(tmp)
+const filePath = './123.xlsx'; //此处以上传excel示例
+const fileContent = fs.readFileSync(filePath);
+const base64content = fileContent.toString('base64');
+// console.log(base64content)
+data = await put_data('pic_123',tmp,base64content)
+console.log(data)
 ```
