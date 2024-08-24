@@ -99,3 +99,60 @@ const fileName = 'xxx';  // 修改为对应KV存储空间中你需要读取的ke
 const token = encrypt({token:'token',time:Date.now()}) //token为数字、字母、字符随意设置，需与settings--Variables相对应
 downloadfile(fileName,token)
 ```
+
+
+读取KV空间中的数据（**单文件大于0.75MB，以读取某个excel为例**）:
+```
+const axios = require('axios');
+const XLSX = require('xlsx');
+
+async function fetchContent(url, token, timeout = 10000) {
+  const response = await axios.get(url, {
+    params: { token },
+    responseType: 'text',
+    timeout,
+  });
+  return response.data;
+};
+async function downloadAndParseExcel(fileName, token) {
+  try {
+    let fileContent;
+    let sheetNames, selectedSheet;
+    const sheetsData = {};
+
+    const initialResponse = await fetchContent(`https://xxx.xxx/${fileName}`, token, 20000); //将xxx.xxx修改为你自己的worker空间域名
+    if (initialResponse.includes('ischunk') && initialResponse.includes('length')) {
+      const { length } = JSON.parse(initialResponse);
+      const chunkPromises = Array.from({ length }, (_, i) => fetchContent(`https://xxx.xxx/${fileName}${i + 1}`, token)); //将xxx.xxx修改为你自己的worker空间域名
+      fileContent = (await Promise.all(chunkPromises)).join('');
+    }
+
+    const workbook = XLSX.read(Buffer.from(fileContent, 'base64'), { type: 'buffer' });
+    sheetNames = workbook.SheetNames;
+    selectedSheet = sheetNames[0];
+    
+    workbook.SheetNames.forEach(sheetName => {
+      const worksheet = workbook.Sheets[sheetName];
+      const { e: { r: lastRow } } = XLSX.utils.decode_range(worksheet['!ref']);
+      worksheet['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRow, c: 7 } });
+      sheetsData[sheetName] = worksheet;
+    });
+
+    return { sheetNames, selectedSheet, sheetsData };
+  } catch (error) {
+    console.error('Error reading the Excel file:', error);
+    throw error;
+  }
+};
+function encrypt(text) {
+  const key = Buffer.from('key', 'utf8'); //key替换为你自己的AES密钥，数字、字母、字符随意设置，需与settings--Variables相对应
+  const cipher = crypto.createCipheriv('aes-128-ecb', key, null);
+  cipher.setAutoPadding(true); // 使用PKCS7填充
+  let encrypted = cipher.update(JSON.stringify(text), 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return encrypted;
+}
+const fileName = 'xxx';  // 修改为对应KV存储空间中你需要读取的key值
+const token = encrypt({token:'token',time:Date.now()}) //token为数字、字母、字符随意设置，需与settings--Variables相对应
+downloadAndParseExcel(fileName,token)
+```
