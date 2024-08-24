@@ -156,3 +156,5 @@ const fileName = 'xxx';  // 修改为对应KV存储空间中你需要读取的ke
 const token = encrypt({token:'token',time:Date.now()}) //token为数字、字母、字符随意设置，需与settings--Variables相对应
 downloadAndParseExcel(fileName,token)
 ```
+该excel在KV空间中的存储方式如图
+![Uploading PixPin_2024-08-24_20-28-18.png…]()
