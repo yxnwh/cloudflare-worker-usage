@@ -20,7 +20,8 @@
 3. 在Cloudflare中创建一个KV命名空间,并将其绑定到您的Worker
 4. 可选，settings--triggers--Add Custom Domain，绑定自己的域名，方便记忆 
 5. 使用提供的API端点来存储和获取数据
-6. settings--Variables需要设置两个变量（**注意都是大写**）```KEY```和```TOKEN```，KEY代表AES密钥，TOKEN作为访问文件的密钥，**注意这两个值应与你本地代码中的KEY和TOKEN相对应，有一个不对应都不会获取到正确的response**
+6. settings--Variables需要设置两个变量（**注意都是大写**）```KEY```和```TOKEN```，KEY代表AES密钥，TOKEN作为访问文件的密钥
+   **注意这两个值应与你本地代码中的KEY和TOKEN相对应，有一个不对应都不会获取到正确的response**
 
 ### API端点
 
@@ -31,13 +32,43 @@
 
 ## 示例
 
-存储数据:
-```http
-POST /api/data
-Content-Type: application/json
+本地向KV空间存储数据:
+```
+const crypto = require('crypto');
+const fs = require('fs');
 
-{
-  "key": "my-data",
-  "value": "这是一些文本数据"
+(async () => {
+    tmp = encrypt({token:'token',time:Date.now()}) //token为数字、字母、字符随意设置，需与settings--Variables相对应
+    console.log(tmp)
+    const filePath = './123.xlsx'; //此处以上传excel示例
+    const fileContent = fs.readFileSync(filePath);
+    const base64content = fileContent.toString('base64');
+    // console.log(base64content)
+    data = await put_data('pic_123',tmp,base64content)
+    console.log(data)
+})()
+
+function encrypt(text) {
+    const key = Buffer.from('key', 'utf8');//key替换为你自己的AES密钥，数字、字母、字符随意设置，需与settings--Variables相对应
+    const cipher = crypto.createCipheriv('aes-128-ecb', key, null);
+    cipher.setAutoPadding(true); // 使用PKCS7填充
+    let encrypted = cipher.update(JSON.stringify(text), 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
 }
+async function put_data(name,token,encodedContent) {
+    const url = `https://xxx.xxx/${name}?token=${token}`//将xxx.xxx修改为你自己的worker空间域名
+    try {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {'Content-Type': 'text/plain'},//存储文本时，可删除body: encodedContent所在行，存储json数据时，Content-Type改为application/json
+            body: encodedContent
+        });
+        const result = await response.text();
+        return result
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+    }
+}
+
 ```
